@@ -1,31 +1,41 @@
 const express = require('express');
 const { json } = require('body-parser');
+const { Word } = require('./word.model');
+
 const app = express();
 
 app.use(json());
 
-app.get('/chia/:a/:b', (req, res) => {
-    const { a, b } = req.params;
-    if (isNaN(a) || isNaN(b)) {
-        return res.send({ success: false, message: 'INVALID_TYPE' });
-    }
-    if (b == 0) {
-        return res.send({ success: false, message: 'DIVIDE_BY_ZERO' });
-    }
-    const result = +a / +b;
-    res.send({ success: true, result });
+app.get('/word', (req, res) => {
+    Word.find({})
+    .then(words => res.send({ success: true, words }));
 });
 
-app.post('/chia', (req, res) => {
-    const { a, b } = req.body;
-    if (isNaN(a) || isNaN(b)) {
-        return res.send({ success: false, message: 'INVALID_TYPE' });
-    }
-    if (b == 0) {
-        return res.send({ success: false, message: 'DIVIDE_BY_ZERO' });
-    }
-    const result = +a / +b;
-    res.send({ success: true, result });
+app.post('/word', (req, res) => {
+    const { en, vn } = req.body;
+    const newWord = new Word({ en, vn });
+    newWord.save()
+    .then(word => res.send({ success: true, word }))
+    .catch(error => res.send({ success: false, message: 'INVALID_INPUT' }));
+});
+
+app.delete('/word/:_id', (req, res) => {
+    Word.findByIdAndRemove(req.params._id)
+    .then(word => {
+        if (!word) throw new Error('CANNOT_FIND_WORD');
+        res.send({ success: true, word });
+    })
+    .catch(error => res.send({ success: false, message: 'INVALID_INPUT' }));
+});
+
+app.put('/word/:_id', (req, res) => {
+    const { isMemorized } = req.body;
+    Word.findByIdAndUpdate(req.params._id, { isMemorized }, { new: true })
+    .then(word => {
+        if (!word) throw new Error('CANNOT_FIND_WORD');
+        res.send({ success: true, word });
+    })
+    .catch(error => res.send({ success: false, message: 'INVALID_INPUT' }));
 });
 
 app.listen(4000, () => console.log('Server started.'));

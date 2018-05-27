@@ -40,4 +40,4 @@ app.put('/word/:_id', (req, res) => {
     .catch(error => res.send({ success: false, message: 'INVALID_INPUT' }));
 });
 
-app.listen(4000, () => console.log('Server started.'));
+app.listen(process.env.PORT || 4000, () => console.log('Server started.'));
